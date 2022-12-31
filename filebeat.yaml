@@ -1,0 +1,39 @@
+logging.level: "debug"
+logging.to_files: true
+logging.files.keepfiles: 10
+logging.files.interval: "24h"
+filebeat.config.modules.path: "${path.config}/modules.d/*.yml"
+filebeat.config.modules.reload.enabled: false
+filebeat.autodiscover.providers:
+  - type: docker
+    templates:
+      - condition.contains.docker.container.name: "authors_backend"
+        config:
+          - type: "container"
+            paths:
+              - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+            processors:
+              - add_fields.target: ""
+                add_fields.fields.event.dataset: "authors_backend.log"
+  - type: docker
+    templates:
+      - condition.contains.docker.container.name: "books_backend"
+        config:
+          - type: "container"
+            paths:
+              - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+            processors:
+              - add_fields.target: ""
+                add_fields.fields.event.dataset: "books_backend.log"
+  - type: docker
+    templates:
+      - condition.contains.docker.container.name: "gateway_backend"
+        config:
+          - type: "container"
+            paths:
+              - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+            processors:
+              - add_fields.target: ""
+                add_fields.fields.event.dataset: "gateway_backend.log"
+output.logstash:
+  hosts: ["logstash:5400"]

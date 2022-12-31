@@ -1,0 +1,85 @@
+version: '3.18'
+services:
+  elasticsearch:
+    container_name: 'logging_demo_elasticsearch'
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:8.5.3'
+    environment:
+      - 'xpack.security.enabled=false'
+      - 'discovery.type=single-node'
+    networks:
+      - 'logging_demo_network'
+  logstash:
+    container_name: 'logging_demo_logstash'
+    image: 'logging-demo/logstash'
+    build:
+      context: '.'
+      dockerfile: 'logstash.Dockerfile'
+    depends_on:
+      kibana:
+        condition: 'service_healthy'
+    networks:
+      - 'logging_demo_network'
+  kibana:
+    container_name: 'logging_demo_kibana'
+    image: 'docker.elastic.co/kibana/kibana:8.5.3'
+    ports:
+      - '5601:5601'
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'kibana:5601' ]
+      interval: '10s'
+      timeout: '10s'
+      retries: 5
+    depends_on:
+      - 'elasticsearch'
+    networks:
+      - 'logging_demo_network'
+  filebeat:
+    container_name: 'logging_demo_filebeat'
+    image: 'logging-demo/filebeat'
+    user: 'root'
+    command: '--strict.perms=false'
+    volumes:
+      - '/var/lib/docker/containers:/var/lib/docker/containers:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    build:
+      context: '.'
+      dockerfile: 'filebeat.Dockerfile'
+    depends_on:
+      - 'logstash'
+    networks:
+      - 'logging_demo_network'
+  authors_backend:
+    container_name: 'authors_backend'
+    image: 'authors/backend'
+    build:
+      context: '.'
+      dockerfile: 'authors_backend.Dockerfile'
+    networks:
+      - 'logging_demo_network'
+  books_backend:
+    container_name: 'books_backend'
+    image: 'books/backend'
+    build:
+      context: '.'
+      dockerfile: 'books_backend.Dockerfile'
+    networks:
+      - 'logging_demo_network'
+  gateway_backend:
+    container_name: 'gateway_backend'
+    image: 'gateway/backend'
+    build:
+      context: '.'
+      dockerfile: 'gateway_backend.Dockerfile'
+    depends_on:
+      - 'authors_backend'
+      - 'books_backend'
+      - 'filebeat'
+    ports:
+      - '8080:8080'
+    networks:
+      - 'logging_demo_network'
+networks:
+  logging_demo_network:
+    name: 'logging_demo'
