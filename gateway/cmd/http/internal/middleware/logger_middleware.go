@@ -21,11 +21,10 @@ func (m Middleware) Logger(ctx *gin.Context) {
 	const scope = "middleware#Logger"
 	ctx.Writer = &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
 	ctx.Next()
-	reqID, _ := ctx.Get("X-Request-Id")
 	m.logger.Info(
 		"Request",
 		logrus.Fields{
-			"id":          reqID,
+			"id":          ctx.Value("X-Request-Id"),
 			"scope":       scope,
 			"ip":          ctx.ClientIP(),
 			"method":      ctx.Request.Method,

@@ -52,7 +52,7 @@ services:
       - 'logging_demo_network'
   authors_backend:
     container_name: 'authors_backend'
-    image: 'authors/backend'
+    image: 'logging-demo/authors'
     build:
       context: '.'
       dockerfile: 'authors_backend.Dockerfile'
@@ -60,7 +60,7 @@ services:
       - 'logging_demo_network'
   books_backend:
     container_name: 'books_backend'
-    image: 'books/backend'
+    image: 'logging-demo/books'
     build:
       context: '.'
       dockerfile: 'books_backend.Dockerfile'
@@ -68,7 +68,7 @@ services:
       - 'logging_demo_network'
   gateway_backend:
     container_name: 'gateway_backend'
-    image: 'gateway/backend'
+    image: 'logging-demo/gateway'
     build:
       context: '.'
       dockerfile: 'gateway_backend.Dockerfile'

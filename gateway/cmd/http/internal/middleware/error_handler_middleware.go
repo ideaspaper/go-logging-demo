@@ -23,7 +23,6 @@ func (m Middleware) ErrorHandler(ctx *gin.Context) {
 		Data:    nil,
 	}
 	firstErr := ctx.Errors[0].Err
-	reqID, _ := ctx.Get("X-Request-Id")
 	if errors.Is(firstErr, &internal.ErrCors) {
 		code = http.StatusNoContent
 		body = &response.Standard{
@@ -48,7 +47,7 @@ func (m Middleware) ErrorHandler(ctx *gin.Context) {
 	logFunction(
 		logMessage,
 		logrus.Fields{
-			"id":    reqID,
+			"id":    ctx.Value("X-Request-Id"),
 			"scope": scope,
 			"error": firstErr.Error(),
 		},
